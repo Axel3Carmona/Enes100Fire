@@ -1,4 +1,3 @@
-#Enes100Fire
 #include "Enes100.h"
 #include "Tank.h"
 #include <math.h>
@@ -53,49 +52,65 @@ void setup() {
 	Tank.turnOffMotors();
 	
 	Enes100.updateLocation(); //update location
-	double firstObstacle = Tank.readDistanceSensor(1); //sense for first obstacle
+	double firstObstacle1 = Tank.readDistanceSensor(1); //sense for first obstacle
+	double firstObstacle0 = Tank.readDistanceSensor(0);
+	double firstObstacle2 = Tank.readDistanceSensor(2);
 	double theta2 = Enes100.location.theta; //update theta
 	double f = Enes100.location.x;
-	Enes100.println(firstObstacle);
+	Enes100.println(firstObstacle1);
 	Enes100.print(e);
 	
-	if(firstObstacle > 0.4){ //No first obstacle detected
+	turn(M_PI/6);//turn to sense for unsensed obstacles
+	double sense1 = Tank.readDistanceSensor(1);
+	turn(-M_PI/6);
+	double sense2 = Tank.readDistanceSensor(1);
+	turn(0);
+	
+	if((firstObstacle1 > 0.4 && sense1 > 0.4 && sense2 > 0.4) || firstObstacle1 == -1){ //No first obstacle detected
 		if((e < 4/3 && e > 2/3) || e > 4/3){
 			secondObstacle(0);	//run second obstacle algorithm
 		}
 		if(e < 2/3){
 			secondObstacle(3);
 		}
-	}else if((Tank.readDistanceSensor(1) < 0.4) && (e < 4/3) && (e > 2/3)){ //Middle Lane Scenario if first obstacle detected
+	}else if((firstObstacle1 < 0.4 || sense1 < 0.4 || sense2 < 0.4) && (e < 4/3) && (e > 2/3)){ //Middle Lane Scenario if first obstacle detected
 		turn(-M_PI/2);
 		Enes100.updateLocation();
 		double g = Enes100.location.y;
-		
-		while(g > 1.5/3){ //drive down to avoid obstacle
-			Enes100.updateLocation();
-			g = Enes100.location.y;
-			setBothMotors(255);
-		}
+	
+			while(g > 1.5/3){ //drive down to avoid obstacle
+				Enes100.updateLocation();
+				g = Enes100.location.y;
+				setBothMotors(255);
+			}
 		
 		Tank.turnOffMotors();
 		turn(0);
 		secondObstacle(1); //run second obstacle algorithm
 		
-	}else if(Tank.readDistanceSensor(1) < 0.4 && e > 4/3){ //Top lane scenario if first obstacle detected
+	}else if((firstObstacle1 < 0.4 || a < 0.4 || b < 0.4) && e > 4/3){ //Top lane scenario if first obstacle detected
 			turn(-M_PI/2);
 			Enes100.updateLocation();
 			double g = Enes100.location.y;
 		
-			while(g > 1){ //drive down to avoid obstacle
-				Enes100.updateLocation();
-				g = Enes100.location.y;
-				setBothMotors(255);
+			if(firstObstacle1 < 0.4 || sense1 < 0.4){
+				while(g > 1){ //drive down to avoid obstacle
+					Enes100.updateLocation();
+					g = Enes100.location.y;
+					setBothMotors(255);
+				}
+			}else if(sense2 < 0.4){
+				while(g > 1.5/3){ //drive down to avoid obstacle
+					Enes100.updateLocation();
+					g = Enes100.location.y;
+					setBothMotors(255);
+				}
 			}
 			
 			Tank.turnOffMotors();
 			turn(0);
 			secondObstacle(1);	//run second obstacle algorithm
-	}else if(Tank.readDistanceSensor(1) < 0.4 && e < 2/3){ //Bottom lane scenario if first obstacle detected
+	}else if((firstObstacle1 < 0.4 || firstObstacle0 < 0.4 || firstObstacle2 < 0.4) && e < 2/3){ //Bottom lane scenario if first obstacle detected
 		turn(M_PI/2);
 		Enes100.updateLocation();
 		double g = Enes100.location.y;
@@ -131,9 +146,77 @@ void secondObstacle(int scenario){
 	Tank.turnOffMotors();
 	
 	Enes100.updateLocation();
-	double secondObs = Tank.readDistanceSensor(1); //sense for obstacle
+	double secondObs1 = Tank.readDistanceSensor(1);
+	turn(M_PI/6);//turn to sense for unsensed obstacles
+	double sense3 = Tank.readDistanceSensor(1);
+	turn(-M_PI/6);
+	double sense4 = Tank.readDistanceSensor(1);
+	turn(0);
 	
-	if(secondObs < 0.4){ //Second obstacle detected, drive around obstacle
+	Enes100.print(secondObs1);
+	if((secondObs1 > 0.4 && sense3 > 0.4 && sense4 > 0.4)  || secondObs1 == -1){ 
+		if(scenario == 0){
+			Enes100.updateLocation();
+			double l = Enes100.location.x;
+			
+			while(l < Enes100.destination.x){
+				Enes100.updateLocation();
+				l = Enes100.location.x;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+		}else if(scenario == 1){ //No second obstacle detected scenario for top and midle lane, drive destination x position, then to destination y 		position
+			Enes100.updateLocation();
+			double j = Enes100.location.x;
+		
+			while(j < Enes100.destination.x){
+				Enes100.updateLocation();
+				j = Enes100.location.x;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+			turn(M_PI/2);
+		
+			Enes100.updateLocation();
+			double k = Enes100.location.y;
+		
+			while(k < Enes100.destination.y){
+				Enes100.updateLocation();
+				k = Enes100.location.y;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+		}else if(scenario == 2){ //No second obstacle detected for bottom lane
+			Enes100.updateLocation();
+			double j = Enes100.location.x;
+		
+			while(j < Enes100.destination.x){
+				Enes100.updateLocation();
+				j = Enes100.location.x;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+			turn(-M_PI/2);
+			
+			Enes100.updateLocation();
+			double k = Enes100.location.y;
+		
+			while(k > Enes100.destination.y){
+				Enes100.updateLocation();
+				k = Enes100.location.y;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+		}else if(scenario == 3){
+			Enes100.updateLocation();
+			double l = Enes100.location.x;
+			
+			while(l < Enes100.destination.x){
+				Enes100.updateLocation();
+				l = Enes100.location.x;
+			}
+		}
+	}else if(secondObs1 < 0.4 || sense3 < 0.4 || sense4 < 0.4){ //Second obstacle detected, drive around obstacle
 		if(scenario == 0){
 			turn(-M_PI/2);
 			Enes100.updateLocation();
@@ -253,68 +336,6 @@ void secondObstacle(int scenario){
 			Tank.turnOffMotors();
 		}
 		
-	}else if(secondObs > 0.4){ 
-		if(scenario == 0){
-			Enes100.updateLocation();
-			double l = Enes100.location.x;
-			
-			while(l < Enes100.destination.x){
-				Enes100.updateLocation();
-				l = Enes100.location.x;
-				setBothMotors(255);
-			}
-			Tank.turnOffMotors();
-		}else if(scenario == 1){ //No second obstacle detected scenario for top and midle lane, drive destination x position, then to destination y 		position
-			Enes100.updateLocation();
-			double j = Enes100.location.x;
-		
-			while(j < Enes100.destination.x){
-				Enes100.updateLocation();
-				j = Enes100.location.x;
-				setBothMotors(255);
-			}
-			Tank.turnOffMotors();
-			turn(M_PI/2);
-		
-			Enes100.updateLocation();
-			double k = Enes100.location.y;
-		
-			while(k < Enes100.destination.y){
-				Enes100.updateLocation();
-				k = Enes100.location.y;
-				setBothMotors(255);
-			}
-			Tank.turnOffMotors();
-		}else if(scenario == 2){ //No second obstacle detected for bottom lane
-			Enes100.updateLocation();
-			double j = Enes100.location.x;
-		
-			while(j < Enes100.destination.x){
-				Enes100.updateLocation();
-				j = Enes100.location.x;
-				setBothMotors(255);
-			}
-			Tank.turnOffMotors();
-			turn(-M_PI/2);
-			
-			Enes100.updateLocation();
-			double k = Enes100.location.y;
-		
-			while(k > Enes100.destination.y){
-				Enes100.updateLocation();
-				k = Enes100.location.y;
-				setBothMotors(255);
-			}
-			Tank.turnOffMotors();
-		}else if(scenario == 3){
-			Enes100.updateLocation();
-			double l = Enes100.location.x;
-			
-			while(l < Enes100.destination.x){
-				Enes100.updateLocation();
-				l = Enes100.location.x;
-			}
-		}
 	}
 }
 
@@ -354,6 +375,4 @@ void setBothMotors(int speed) {
 	Tank.setLeftMotorPWM(speed);
 	Tank.setRightMotorPWM(speed);
 }
-
-
 
