@@ -53,20 +53,22 @@ void setup() {
 	
 	Enes100.updateLocation(); //update location
 	double firstObstacle1 = Tank.readDistanceSensor(1); //sense for first obstacle
-	double firstObstacle0 = Tank.readDistanceSensor(0);
-	double firstObstacle2 = Tank.readDistanceSensor(2);
 	double theta2 = Enes100.location.theta; //update theta
 	double f = Enes100.location.x;
+	double sense1;
+	double sense2;
 	Enes100.println(firstObstacle1);
 	Enes100.println(e);
 	
-	turn(M_PI/6);//turn to sense for unsensed obstacles
-	double sense1 = Tank.readDistanceSensor(1);
-	turn(-M_PI/6);
-	double sense2 = Tank.readDistanceSensor(1);
-	turn(0);
-	Enes100.println(sense1);
-	Enes100.println(sense2);
+	if(firstObstacle1 > 0.4 || firstObstacle1 == 1){
+		turn(M_PI/6);//turn to sense for unsensed obstacles
+		sense1 = Tank.readDistanceSensor(1);
+		turn(-M_PI/6);
+		sense2 = Tank.readDistanceSensor(1);
+		turn(0);
+		Enes100.println(sense1);
+		Enes100.println(sense2);
+	}
 	
 	if((firstObstacle1 > 0.4 && sense1 > 0.2 && sense2 > 0.2) || firstObstacle1 == -1){ //No first obstacle detected
 		if((e < 4/3 && e > 2/3) || e > 4/3){
@@ -164,11 +166,16 @@ void secondObstacle(int scenario){
 	
 	Enes100.updateLocation();
 	double secondObs1 = Tank.readDistanceSensor(1);
-	turn(M_PI/6);//turn to sense for unsensed obstacles
-	double sense3 = Tank.readDistanceSensor(1);
-	turn(-M_PI/6);
-	double sense4 = Tank.readDistanceSensor(1);
-	turn(0);
+	double sense3;
+	double sense4;
+	
+	if(secondObs1 > 0.4 || secondObs1 == -1){
+		turn(M_PI/6);//turn to sense for unsensed obstacles
+		sense3 = Tank.readDistanceSensor(1);
+		turn(-M_PI/6);
+		sense4 = Tank.readDistanceSensor(1);
+		turn(0);
+	}
 	
 	Enes100.print(secondObs1);
 	if((secondObs1 > 0.4 && sense3 > 0.4 && sense4 > 0.4)  || secondObs1 == -1){ 
@@ -408,6 +415,7 @@ void setBothMotors(int speed) {
 	Tank.setLeftMotorPWM(speed);
 	Tank.setRightMotorPWM(speed);
 }
+
 
 
 
