@@ -58,37 +58,54 @@ void setup() {
 	double theta2 = Enes100.location.theta; //update theta
 	double f = Enes100.location.x;
 	Enes100.println(firstObstacle1);
-	Enes100.print(e);
+	Enes100.println(e);
 	
 	turn(M_PI/6);//turn to sense for unsensed obstacles
 	double sense1 = Tank.readDistanceSensor(1);
 	turn(-M_PI/6);
 	double sense2 = Tank.readDistanceSensor(1);
 	turn(0);
+	Enes100.println(sense1);
+	Enes100.println(sense2);
 	
-	if((firstObstacle1 > 0.4 && sense1 > 0.4 && sense2 > 0.4) || firstObstacle1 == -1){ //No first obstacle detected
+	if((firstObstacle1 > 0.4 && sense1 > 0.2 && sense2 > 0.2) || firstObstacle1 == -1){ //No first obstacle detected
 		if((e < 4/3 && e > 2/3) || e > 4/3){
 			secondObstacle(0);	//run second obstacle algorithm
 		}
 		if(e < 2/3){
 			secondObstacle(3);
 		}
-	}else if((firstObstacle1 < 0.4 || sense1 < 0.4 || sense2 < 0.4) && (e < 4/3) && (e > 2/3)){ //Middle Lane Scenario if first obstacle detected
-		turn(-M_PI/2);
-		Enes100.updateLocation();
-		double g = Enes100.location.y;
-	
+	}else if((firstObstacle1 < 0.4 || sense1 < 0.2 || sense2 < 0.2) && (e < 4/3) && (e > 2/3)){ //Middle Lane Scenario if first obstacle detected
+		
+		if(sense1 < 0.2){
+			turn(-M_PI/2);
+			Enes100.updateLocation();
+			double g = Enes100.location.y;
 			while(g > 1.5/3){ //drive down to avoid obstacle
 				Enes100.updateLocation();
 				g = Enes100.location.y;
 				setBothMotors(255);
 			}
+			Tank.turnOffMotors();
+			turn(0);
+			secondObstacle(1);
+		}else if(sense2 < 0.2){
+			turn(M_PI/2);
+			Enes100.updateLocation();
+			double g = Enes100.location.y;
+			while(g < 1){ //drive up to avoid obstacle
+				Enes100.updateLocation();
+				g = Enes100.location.y;
+				setBothMotors(255);
+			}
+			Tank.turnOffMotors();
+			turn(0);
+			secondObstacle(0);
+		}
 		
-		Tank.turnOffMotors();
-		turn(0);
-		secondObstacle(1); //run second obstacle algorithm
+		 //run second obstacle algorithm
 		
-	}else if((firstObstacle1 < 0.4 || a < 0.4 || b < 0.4) && e > 4/3){ //Top lane scenario if first obstacle detected
+	}else if((firstObstacle1 < 0.4 || sense1 < 0.2 || sense2 < 0.2) && e > 4/3){ //Top lane scenario if first obstacle detected
 			turn(-M_PI/2);
 			Enes100.updateLocation();
 			double g = Enes100.location.y;
@@ -110,7 +127,7 @@ void setup() {
 			Tank.turnOffMotors();
 			turn(0);
 			secondObstacle(1);	//run second obstacle algorithm
-	}else if((firstObstacle1 < 0.4 || firstObstacle0 < 0.4 || firstObstacle2 < 0.4) && e < 2/3){ //Bottom lane scenario if first obstacle detected
+	}else if((firstObstacle1 < 0.4 || sense1 < 0.2 || sense2 < 0.2) && e < 2/3){ //Bottom lane scenario if first obstacle detected
 		turn(M_PI/2);
 		Enes100.updateLocation();
 		double g = Enes100.location.y;
@@ -218,17 +235,33 @@ void secondObstacle(int scenario){
 		}
 	}else if(secondObs1 < 0.4 || sense3 < 0.4 || sense4 < 0.4){ //Second obstacle detected, drive around obstacle
 		if(scenario == 0){
-			turn(-M_PI/2);
-			Enes100.updateLocation();
-			double l = Enes100.location.y;
 			
-			while(l > 1.5/3){
+			if(sense3 < 0.4){
+				turn(-M_PI/2);
 				Enes100.updateLocation();
-				l = Enes100.location.y;
-				setBothMotors(255);
+				double l = Enes100.location.y;
+			
+				while(l > 1.5/3){
+					Enes100.updateLocation();
+					l = Enes100.location.y;
+					setBothMotors(255);
+				}
+				Tank.turnOffMotors();
+				turn(0);
+			}else if(sense4 < 0.4){
+				turn(M_PI/2);
+				Enes100.updateLocation();
+				double l1 = Enes100.location.y;
+				double l;
+				
+				while(l < l1 + 0.02){
+					Enes100.updateLocation();
+					l = Enes100.location.y;
+					setBothMotors(255);
+				}
+				Tank.turnOffMotors();
+				turn(0);
 			}
-			Tank.turnOffMotors();
-			turn(0);
 			Enes100.updateLocation();
 			double m = Enes100.location.x;
 			
@@ -254,7 +287,7 @@ void secondObstacle(int scenario){
 			Enes100.updateLocation();
 			double j = Enes100.location.y;
 		
-			while(j < Enes100.destination.y){
+			while(j < Enes100.destination.y + 0.02){
 				Enes100.updateLocation();
 				j = Enes100.location.y;
 				setBothMotors(255);
@@ -375,4 +408,8 @@ void setBothMotors(int speed) {
 	Tank.setLeftMotorPWM(speed);
 	Tank.setRightMotorPWM(speed);
 }
+
+
+
+
 
